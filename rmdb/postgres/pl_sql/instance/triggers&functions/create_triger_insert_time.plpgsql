@@ -1,0 +1,14 @@
+CREATE or REPLACE FUNCTION set_the_action_timestamp()
+RETURNS TRIGGER AS $BODY$
+BEGIN
+        NEW."ActionTime" = clock_timestamp();
+	RETURN NEW;
+END;
+$BODY$ LANGUAGE 'plpgsql';
+
+DROP TRIGGER IF EXISTS set_default_action_time ON "log"."EventLog";
+
+CREATE  TRIGGER set_default_action_time
+        BEFORE INSERT ON "log"."EventLog"
+        FOR EACH ROW
+        EXECUTE PROCEDURE set_the_action_timestamp();

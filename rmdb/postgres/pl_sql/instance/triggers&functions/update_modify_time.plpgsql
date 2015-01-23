@@ -1,0 +1,21 @@
+CREATE or REPLACE FUNCTION eventlog_time_update()
+RETURNS TRIGGER AS $BODY$
+BEGIN
+	IF row(NEW.*) IS DISTINCT FROM row(OLD.*) THEN
+		NEW."ActionTime" = clock_timestamp();
+		--NEW."Location" = 'BJ';
+		RETURN NEW;
+	ELSE
+		RETURN OLD;
+	END IF;
+END
+$BODY$ LANGUAGE 'plpgsql';
+
+DROP TRIGGER IF EXISTS eventlog_update ON "log"."EventLog";
+
+CREATE TRIGGER eventlog_update
+    BEFORE UPDATE ON "log"."EventLog"  	--Here must be BEFORE, AFTER will take no effect on result since update has complete. NEW will not written into table. 
+					--AFTER could be used to track the modification into other table
+    FOR EACH ROW
+    WHEN (OLD.* IS DISTINCT FROM NEW.*)
+    EXECUTE PROCEDURE eventlog_time_update();
