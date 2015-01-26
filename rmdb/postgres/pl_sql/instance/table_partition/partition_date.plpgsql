@@ -1,33 +1,31 @@
 CREATE OR REPLACE FUNCTION log.eventlog_partition_function() RETURNS TRIGGER AS 
-$ 
+$BODY$ 
 DECLARE _new_time int; _table_name text; _start_date text; _end_date text; _result_record text; 
 BEGIN 
 --Takes the current inbound "time" value and determines when midnight is for the given date 
-_new_time := ((NEW."time"/86400)::int)*86400;
+_new_time := ((CAST(extract(epoch from(NEW."ActionTime")) AS integer)/86400)::int)*86400;
 _start_date := to_char(to_timestamp(_new_time), 'YYYY-MM-DD'); 
-_table_name := 'server'||_start_date;
+_table_name := 'Event_'||_start_date;
 
 -- Check if the partition needed for the current record exists 
-PERFORM 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind = 'r' AND c.relname = _table_name AND n.nspname = 'test';
+PERFORM 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind = 'r' AND c.relname = _table_name AND n.nspname = 'log';
 -- If the partition needed does not yet exist, then we create it: 
 -- Note that || is string concatenation (joining two strings to make one) 
 IF NOT FOUND THEN _end_date:=_start_date::timestamp + INTERVAL '1 day'; 
-EXECUTE 'CREATE TABLE test.' || quote_ident(_table_name) || ' ( CHECK ( "time" >= EXTRACT(EPOCH FROM DATE ' 
-|| quote_literal(_start_date) || ') AND "time" < EXTRACT(EPOCH FROM DATE ' || quote_literal(_end_date) || ') ) ) INHERITS (test.server_master)';
+EXECUTE 'CREATE TABLE log.' || quote_ident(_table_name) || ' ( CHECK( "ActionTime" >=  TIMESTAMP ' 
+|| quote_literal(_start_date) || ' AND  "ActionTime" < TIMESTAMP ' || quote_literal(_end_date) || ' ) ) INHERITS (log."EventLog")';
 
 
 -- Table permissions are not inherited from the parent. 
 -- If permissions change on the master be sure to change them on the child also. 
-EXECUTE 'ALTER TABLE test.' || quote_ident(_table_name) || ' OWNER TO hero'; 
-EXECUTE 'GRANT ALL ON TABLE test.' || quote_ident(_table_name) || ' TO hero';
+EXECUTE 'ALTER TABLE log.' || quote_ident(_table_name) || ' OWNER TO hero'; 
+EXECUTE 'GRANT ALL ON TABLE log.' || quote_ident(_table_name) || ' TO hero';
 -- Indexes are defined per child, so we assign a default index that uses the partition columns 
-EXECUTE 'CREATE INDEX ' || quote_ident(_table_name||'_indx1') || ' ON test.' || quote_ident(_table_name) || ' (time, id)'; 
+EXECUTE 'CREATE INDEX ' || quote_ident(_table_name||'_indx1') || ' ON log.' || quote_ident(_table_name) || ' ("ActionTime", "Id")'; 
 END IF;
 -- Insert the current record into the correct partition, which we are sure will now exist. 
-EXECUTE 'INSERT INTO test.' || quote_ident(_table_name) || ' VALUES ($1.*)' USING NEW; 
+EXECUTE 'INSERT INTO log.' || quote_ident(_table_name) || ' VALUES ($1.*)' USING NEW; 
 RETURN NULL; 
 END;
-$
- 
---$ asda$ --BODY$ 
+--$BODY$ 
 LANGUAGE plpgsql;
