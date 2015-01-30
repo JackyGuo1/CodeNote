@@ -1,0 +1,11 @@
+#emacs mode
+enter:set -o emacs
+hot_key:
+	- ^A:Go to header
+	- ^E:Go to tail
+	- ^F:Forward
+	- ^B:Backward
+	- ^K:Delete to the end
+	- Alt+Backspace: Delete a word
+#vi mode
+enter:set -o vi
