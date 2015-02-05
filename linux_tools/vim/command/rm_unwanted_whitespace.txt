@@ -1,0 +1,5 @@
+remove heading unwanted whitespaces:
+:%s/^\s\+//
+
+remove trailing unwanted whitespaces:
+:%s/\s\+$//
