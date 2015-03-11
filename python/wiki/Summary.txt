@@ -1,0 +1,7 @@
+Characters:
+1.Simple to use, getting complex job done. Not just excellent for text and file like Shell. It's a programming language.
+2.General(high-level) data-types built in. Better than Awk/Perl.
+3.Split program into modules, which could be resued in other python program
+4.An Interpreted language, no need to compilation and linking. It's on the fly.
+5.Make program shorter
+6.Extendible for C to purse good performance and other binary source.
