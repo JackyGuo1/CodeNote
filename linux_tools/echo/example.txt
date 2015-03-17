@@ -1,0 +1,2 @@
+-e : enable interpretation of backslash escapes
+echo -e "import sys\nfor r in range(10): print 'rob'" | python

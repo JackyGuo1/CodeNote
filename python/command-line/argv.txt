@@ -1,0 +1,5 @@
+python -c "exec(\"import sys\\nprint sys.argv\")"  	# argv[0] = '-c'
+
+python -m a.py 						# argv[0] = '/home/.../a.py'
+
+python a.py a b c -c 'print "nmk"' 			# argv = ['a.py', 'a', 'b', 'c', '-c', 'print "nmk"'] 
