@@ -1,0 +1,21 @@
+Create or REPLACE FUNCTION lookup_title_category() RETURNS TRIGGER
+AS $$
+DECLARE
+		category_keyINTEGER;
+BEGIN
+
+		SELECT "CategoryId" INTO  category_key
+		FROM "TitleClassifier"
+		WHERE  NEW."Title"  like '%'||"Category"||'%';
+		
+		NEW."CategoryId" = category_key;
+		RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER lagoujob_category_trigger
+BEFORE INSERT ON "LagouJob"
+FOR EACH ROW EXECUTE PROCEDURE lookup_title_category();
+
+
